@@ -112,11 +112,8 @@ class Version:
         """
             метод использует для сравнения существующие методы lt и ne
         """
-        if self != other:
-            if not self < other:
-                return True
-            else:
-                return False
+        if self != other and not self < other:
+            return True
         else:
             return False
 
