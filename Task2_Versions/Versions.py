@@ -16,17 +16,25 @@ class Version:
     бета: 2
     rc: -1
 
+    Конструкция получилась довольно массивной, но она обрабатывает все возможные случаи
+
     """
 
     def __init__(self, version):
         self.version = version
 
     def get_version(self):
+        """
+        Метод возвращает список с преобразованием к общему формату
+        """
         version = self.version.replace("-", "").replace(" ","").replace(":", "").replace("alpha", ":1").replace("beta", ":2").replace("rc", ":-1")\
             .replace("b", ":2").split('.')
         return version
 
     def __lt__(self, other):
+        """
+            Сравнение значений приведенных к общему формату
+        """
         my_v = self.get_version()
         other_v = other.get_version()
         if len(my_v) >= len(other_v):
@@ -42,7 +50,7 @@ class Version:
             try:
                 highest_number = int(highest[i].split(':')[0])
             except ValueError:
-                """ Нужен если на конце конструкции стоит .beta, например """
+                """ Нужен если на конце конструкции стоит .beta без цифры, например """
                 highest_number = 0
 
 
@@ -63,20 +71,30 @@ class Version:
 
 
             if highest_number != lowest_number:
+                """
+                    Сравнение голых чисел
+                """
                 if highest_number < lowest_number:
                     if highest_length:
                         return True
                     else:
                         return False
             else:
+                """
+                    Сравнение приоритетов
+                """
                 try:
                     highest_priority = int(highest[i].split(':')[1])
                 except IndexError:
+                    """
+                        Отсутствие приоритета делает его ранвым 0
+                    """
                     highest_priority = 0
                 try:
                     lowest_priority = int(lowest[i].split(':')[1])
                 except IndexError:
                     lowest_priority = 0
+
                 if highest_priority != lowest_priority:
                     if highest_priority > lowest_priority:
                         if highest_length:
@@ -91,6 +109,9 @@ class Version:
         return False
 
     def __gt__(self, other):
+        """
+            метод использует для сравнения существующие методы lt и ne
+        """
         if self != other:
             if not self < other:
                 return True
@@ -100,6 +121,9 @@ class Version:
             return False
 
     def __ne__(self, other):
+        """
+            сравнивает приведенные к стандартной форме значения
+        """
         my_v = self.get_version()
         other_v = other.get_version()
         if len(my_v) == len(other_v):
@@ -121,6 +145,7 @@ def main():
         ("1.1.0-alpha", "1.2.0-alpha.1"),
         ("1.0.1b", "1.0.10-alpha.beta"),
         ("1.0.0-rc.1", "1.0.0"),
+        ("1.0.0.1", "1.0.0.1.1")
     ]
 
     for version_1, version_2 in to_test:
