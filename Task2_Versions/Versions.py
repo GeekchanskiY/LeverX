@@ -50,7 +50,7 @@ class Version:
             try:
                 highest_number = int(highest[i].split(':')[0])
             except ValueError:
-                """ Нужен если на конце конструкции стоит .beta без цифры, например """
+                # Нужен если на конце конструкции стоит .beta без цифры, например
                 highest_number = 0
 
 
@@ -59,36 +59,35 @@ class Version:
             except ValueError:
                 lowest_number = 0
             except IndexError:
-                """
-                Если все значения до конца одной из версий совпали, то в зависимости от самой длинной версии будет
-                делаться вывод какая новее. Это первое что пришло в голову, короче с той же точностью
-                вариантов пока что не нашел.
-                """
+
+                # Если все значения до конца одной из версий совпали, то в зависимости от самой длинной версии будет
+                # делаться вывод какая новее. Это первое что пришло в голову, короче с той же точностью
+                # вариантов пока что не нашел.
+
                 if highest_length:
                     return False
                 else:
                     return True
 
-
             if highest_number != lowest_number:
-                """
-                    Сравнение голых чисел
-                """
+
+                #Сравнение голых чисел
+
                 if highest_number < lowest_number:
                     if highest_length:
                         return True
                     else:
                         return False
             else:
-                """
-                    Сравнение приоритетов
-                """
+
+                #Сравнение приоритетов
+
                 try:
                     highest_priority = int(highest[i].split(':')[1])
                 except IndexError:
-                    """
-                        Отсутствие приоритета делает его ранвым 0
-                    """
+
+                    #Отсутствие приоритета делает его ранвым 0
+
                     highest_priority = 0
                 try:
                     lowest_priority = int(lowest[i].split(':')[1])
