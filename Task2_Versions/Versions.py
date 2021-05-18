@@ -1,16 +1,6 @@
 class Version:
 
     """
-
-    Сравнение версий ведется чисто для упомянутых примеров
-
-    Добавление .replace() добавляет новый постфикс, приоритеты можно менять
-
-
-    0-alpha < o-alpha.1
-    .1b < 10-alpha.beta ! Сравнивается само число 10
-    0-rc.1 < 0
-
     Приоритеты контроля:
     альфа: 1
     бета: 2
@@ -25,11 +15,27 @@ class Version:
 
     def get_version(self):
         """
-        Метод возвращает список с преобразованием к общему формату
+            Метод возвращает список с преобразованием к общему формату
         """
-        version = self.version.replace("-", "").replace(" ","").replace(":", "").replace("alpha", ":1").replace("beta", ":2").replace("rc", ":-1")\
-            .replace("b", ":2").split('.')
-        return version
+
+        args_to_replace = {
+            '-':'',
+            ' ':'',
+            ':':'',
+            'alpha':':1',
+            'beta':':2',
+            'rc':':-1',
+            'b':':2'
+
+        }
+
+        version_string = self.version
+        for key in args_to_replace.keys():
+            version_string = version_string.replace(key, args_to_replace[key])
+
+        version_list = version_string.split('.')
+
+        return version_list
 
     def __lt__(self, other):
         """
@@ -37,6 +43,8 @@ class Version:
         """
         my_v = self.get_version()
         other_v = other.get_version()
+
+
         if len(my_v) >= len(other_v):
             highest = my_v
             lowest = other_v
@@ -45,8 +53,9 @@ class Version:
             highest = other_v
             lowest = my_v
             highest_length = False
-        for i in range(len(highest)):
 
+
+        for i in range(len(highest)):
             try:
                 highest_number = int(highest[i].split(':')[0])
             except ValueError:
