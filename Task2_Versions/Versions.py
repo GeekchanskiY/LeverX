@@ -12,6 +12,7 @@ class Version:
 
     def __init__(self, version):
         self.version = version
+        self.normalized_version = self.get_version()
 
     def get_version(self):
         """
@@ -41,9 +42,8 @@ class Version:
         """
             Сравнение значений приведенных к общему формату
         """
-        my_v = self.get_version()
-        other_v = other.get_version()
-
+        my_v = self.normalized_version
+        other_v = other.normalized_version
 
         if len(my_v) >= len(other_v):
             highest = my_v
@@ -88,7 +88,6 @@ class Version:
                     else:
                         return False
             else:
-
                 #Сравнение приоритетов
 
                 try:

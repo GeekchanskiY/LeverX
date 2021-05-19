@@ -1,4 +1,5 @@
 import json
+import argparse
 
 import xml.etree.ElementTree as ET
 
@@ -44,9 +45,9 @@ class Student:
         return self.name
 
 
-def read_json(hint):
+def read_json(path):
     """ Чтение json """
-    with open(input(hint), 'r', encoding="cp1251") as json_file:
+    with open(path, 'r', encoding="cp1251") as json_file:
         json_data = json.load(json_file)
         json_file.close()
     return json_data
@@ -73,8 +74,17 @@ def write_xml(data):
 
 def main():
     """ Чтение данных из файлов """
-    rooms_json = read_json("Input path to rooms.json \n -->")
-    students_json = read_json("Input path to students.json \n -->")
+    parser = argparse.ArgumentParser(description="Path to data")
+    parser.add_argument("path_to_rooms", type=str, help="Input absolute path for rooms.json", default=None,
+                        required=True)
+    parser.add_argument("path_to_students", type=str, help="Input absolute path for students.json", default=None,
+                        required=True)
+    parser.add_argument("output_format", type=int, help="Choose output format. 1 - Json, 2 - XML, 3 - both",
+                        default=None, required=True)
+    args = parser.parse_args()
+    print(args.output_format)
+    rooms_json = read_json(args.path_to_rooms)
+    students_json = read_json(args.path_to_students)
 
     """ Создание комнат и распределение учеников по комнатам """
 
@@ -88,8 +98,14 @@ def main():
     writing_data = []
     for room in Room.instances:
         writing_data.append({"room": room.get_data()[0], "students": room.get_data()[1]})
-    write_json(writing_data)
-    write_xml(writing_data)
+
+    if args.output_format == 1:
+        write_json(writing_data)
+    elif args.output_format == 2:
+        write_xml(writing_data)
+    else:
+        write_json(writing_data)
+        write_xml(writing_data)
 
 
 if __name__ == '__main__':
