@@ -1,144 +1,49 @@
+from functools import total_ordering
+
 class Version:
-
-    """
-    Приоритеты контроля:
-    альфа: 1
-    бета: 2
-    rc: -1
-
-    Конструкция получилась довольно массивной, но она обрабатывает все возможные случаи
-
-    """
-
     def __init__(self, version):
-        self.version = version
-        self.normalized_version = self.get_version()
+        self.normalized_version = self.normalize(version)
 
-    def get_version(self):
-        """
-            Метод возвращает список с преобразованием к общему формату
-        """
-
+    def normalize(self, version):
         args_to_replace = {
-            '-':'',
-            ' ':'',
-            ':':'',
-            'alpha':':1',
-            'beta':':2',
-            'rc':':-1',
-            'b':':2'
-
+            '-': '',
+            'alpha': '.1',
+            'beta': '.2',
+            'b': '.2',
+            'rc': '.3'
         }
-
-        version_string = self.version
+        version_str = version
         for key in args_to_replace.keys():
-            version_string = version_string.replace(key, args_to_replace[key])
+            version_str = version_str.replace(key, args_to_replace[key])
+        version_list = version_str.split('.')
 
-        version_list = version_string.split('.')
+        # Данный луп нужен для избежания ситуаций 1.0.0.0 != 1.0.0
+        while True:
+            if version_list[-1] == "0" and len(version_list) > 3:
+                del version_list[-1]
+            else: break
 
-        return version_list
+
+        while True:
+            if len(version_list) > 2:
+                return version_list
+            else: version_list.append('0')
+
 
     def __lt__(self, other):
-        """
-            Сравнение значений приведенных к общему формату
-        """
-        my_v = self.normalized_version
-        other_v = other.normalized_version
-
-        if len(my_v) >= len(other_v):
-            highest = my_v
-            lowest = other_v
-            highest_length = True
-        else:
-            highest = other_v
-            lowest = my_v
-            highest_length = False
+        for my_ver, other_ver in zip(self.normalized_version, other.normalized_version):
+            if my_ver < other_ver: return True
+            elif my_ver > other_ver: return False
+        return True if len(self.normalized_version) > len(other.normalized_version) else False
 
 
-        for i in range(len(highest)):
-            try:
-                highest_number = int(highest[i].split(':')[0])
-            except ValueError:
-                # Нужен если на конце конструкции стоит .beta без цифры, например
-                highest_number = 0
-
-
-            try:
-                lowest_number = int(lowest[i].split(':')[0])
-            except ValueError:
-                lowest_number = 0
-            except IndexError:
-
-                # Если все значения до конца одной из версий совпали, то в зависимости от самой длинной версии будет
-                # делаться вывод какая новее. Это первое что пришло в голову, короче с той же точностью
-                # вариантов пока что не нашел.
-
-                if highest_length:
-                    return False
-                else:
-                    return True
-
-            if highest_number != lowest_number:
-
-                #Сравнение голых чисел
-
-                if highest_number < lowest_number:
-                    if highest_length:
-                        return True
-                    else:
-                        return False
-            else:
-                #Сравнение приоритетов
-
-                try:
-                    highest_priority = int(highest[i].split(':')[1])
-                except IndexError:
-
-                    #Отсутствие приоритета делает его ранвым 0
-
-                    highest_priority = 0
-                try:
-                    lowest_priority = int(lowest[i].split(':')[1])
-                except IndexError:
-                    lowest_priority = 0
-
-                if highest_priority != lowest_priority:
-                    if highest_priority > lowest_priority:
-                        if highest_length:
-                            return False
-                        else:
-                            return True
-                    else:
-                        if highest_length:
-                            return True
-                        else:
-                            return False
-        return False
-
-    def __gt__(self, other):
-        """
-            метод использует для сравнения существующие методы lt и ne
-        """
-        if self != other and not self < other:
-            return True
+    def __eq__(self, other):
+        if len(self.normalized_version) == len(other.normalized_version):
+            for my_version,other_version in zip(self.normalized_version, other.normalized_version):
+                if my_version != other_version: return False
         else:
             return False
-
-    def __ne__(self, other):
-        """
-            сравнивает приведенные к стандартной форме значения
-        """
-        my_v = self.get_version()
-        other_v = other.get_version()
-        if len(my_v) == len(other_v):
-            for i in range(len(my_v)):
-                if my_v[i] != other_v[i]:
-                    return True
-        else:
-            return True
-
-        return False
-
+        return True
 
 
 def main():
@@ -148,15 +53,16 @@ def main():
         ("1.2.0", "1.2.42"),
         ("1.1.0-alpha", "1.2.0-alpha.1"),
         ("1.0.1b", "1.0.10-alpha.beta"),
-        ("1.0.0-rc.1", "1.0.0"),
-        ("1.0.0.1", "1.0.0.1.1")
+        ("1.0.0-rc.1", "1.0.0")
     ]
 
     for version_1, version_2 in to_test:
+        print(version_1,version_2)
         assert Version(version_1) < Version(version_2), "le failed"
         assert Version(version_2) > Version(version_1), "ge failed"
         assert Version(version_2) != Version(version_1), "neq failed"
 
+    #assert Version("1") == Version("1.0.0.0.0"), "fiasco"
 
 if __name__ == "__main__":
     main()
