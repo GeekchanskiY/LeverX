@@ -8,23 +8,23 @@ class Data:
         self.lock = Lock()
         self.variable = 0
 
+    def function(self, arg:int):
+        for _ in range(arg):
+            self.lock.acquire()
+            self.variable += 1
+            self.lock.release()
 
-def function(arg, obj):
 
-    for _ in range(arg):
-        obj.lock.acquire()
-        obj.variable += 1
-        obj.lock.release()
 
 
 def main():
     obj = Data()
-    threads = []
+    result = 0
     with ThreadPoolExecutor(max_workers=5) as executor:
         for i in range(5):
-            executor.submit(function(arg=1000000, obj=obj))
+            executor.submit( obj.function(1000000) )
 
-    [t.join() for t in threads]
+
     print("----------------------", obj.variable)
 
 
