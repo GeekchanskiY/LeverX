@@ -1,7 +1,10 @@
 import json
 import argparse
+import pymysql
 
 import xml.etree.ElementTree as ET
+
+from queries import *
 
 class Writer:
     def __init__(self, data):
@@ -85,8 +88,12 @@ class Room(object):
 
 
 class Student:
-    def __init__(self, name):
+    def __init__(self, name, id, sex, birthday, room):
         self.name = name
+        self.id = id
+        self.birthday = birthday
+        self.room = room
+        self.sex = sex
 
     def get_name(self):
         return self.name
@@ -99,31 +106,25 @@ def main():
     parser.add_argument("path_to_students", type=str, help="Input absolute path for students.json", default=None)
     parser.add_argument("output_format", type=int, help="Choose output format. 1 - Json, 2 - XML, 3 - both",
                         default=None)
+    parser.add_argument("db_host", type=str, help="Database host")
+    parser.add_argument("db_user", type=str, help="Database user")
+    parser.add_argument("db_password", type=str, help="Database password")
     args = parser.parse_args()
+
+    init(args)
+
 
     rooms_json = JsonReader(args.path_to_rooms).read()
     students_json = JsonReader(args.path_to_students).read()
+    rooms = [Room(i["id"]) for i in rooms_json]
+    data = []
+    for i in rooms_json:
+        data.append(i["id"])
+    add_rooms(args, data)
+    students = [Student(name=i["name"], birthday=i["birthday"], sex=i["sex"], room=i["room"], id=i["id"]) for i in students_json]
+
 
     # Создание комнат и распределение учеников по комнатам
-
-    rooms = [Room(i["id"]) for i in rooms_json]
-    for i in students_json:
-        student = Student(i["name"])
-        rooms[int(i["room"])].students.append(student)
-
-    # Получение данных из всех комнат с последующей записью в json и xml
-
-    writing_data = []
-    for room in rooms:
-        writing_data.append({"room": room.get_data()[0], "students": room.get_data()[1]})
-
-    if args.output_format == 1:
-        JsonWriter(writing_data).write()
-    elif args.output_format == 2:
-        XmlWriter(writing_data).write()
-    else:
-        JsonWriter(writing_data).write()
-        XmlWriter(writing_data).write()
 
 
 if __name__ == '__main__':
