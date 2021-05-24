@@ -6,6 +6,8 @@ import xml.etree.ElementTree as ET
 
 from queries import *
 
+from decimal import Decimal
+
 class Writer:
     def __init__(self, data):
         self.data = data
@@ -39,12 +41,13 @@ class XmlSerializer(Serializer):
 
 
 class JsonWriter(Writer):
-    def __init__(self, data):
+    def __init__(self, data, filename):
         super().__init__(data)
+        self.filename = filename
 
     def write(self):
-        with open("output.json", "w", encoding="cp1251") as f:
-            json.dump(self.data, f)
+        with open("{}.json".format(self.filename), "w", encoding="cp1251") as f:
+            json.dump(self.data, f, ensure_ascii=False, default=str)
             f.close()
 
 
@@ -110,10 +113,15 @@ def main():
     parser.add_argument("db_user", type=str, help="Database user")
     parser.add_argument("db_password", type=str, help="Database password")
     args = parser.parse_args()
-    print(min_avg_age(args))
-    print(diff_sex(args))
-    print(max_diff_age(args))
+
     #init(args)
+    print(min_avg_age(args))
+    JsonWriter(min_avg_age(args), "min_avg_age").write()
+    print(diff_sex(args))
+    JsonWriter(diff_sex(args), "different_sex").write()
+    print(max_diff_age(args))
+    JsonWriter(max_diff_age(args), "max_diff_age").write()
+
 
 
     rooms_json = JsonReader(args.path_to_rooms).read()
