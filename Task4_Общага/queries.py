@@ -8,8 +8,6 @@ def connect(args):
 def init(args):
     con, cur = connect(args)
     with con:
-        cur.execute("DROP TABLE IF EXISTS Students;")
-        cur.execute("DROP TABLE IF EXISTS Rooms;")
         cur.execute("CREATE TABLE if not exists Rooms(RoomID INT Primary KEY NOT NULL UNIQUE);")
         cur.execute("CREATE TABLE if not exists Students(StudentID INT Primary KEY NOT NULL UNIQUE, sex Enum('M','F'), name VARCHAR(100),"
                     " birthday DATETIME, RoomID INT,FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID) ON DELETE CASCADE);")
@@ -23,14 +21,50 @@ def add_rooms(args, data):
 
 def add_students(args, data):
     con, cur = connect(args)
+    query = "INSERT Students(StudentID, sex, name, birthday, RoomID) VALUES (%s, %s, %s, %s, %s);"
     with con:
         for i in data:
-
-            query = "INSERT Students(StudentID, sex, name, birthday, RoomID) VALUES (%s, %s, %s, %s, %s);"
-            print(query, (i["id"], i["sex"], i["name"], i["birthday"], i["room"]))
             cur.execute(query, [i["id"],i["sex"],i["name"],i["birthday"],i["room"]])
             con.commit()
 
+def min_avg_age(args):
+    con, cur = connect(args)
+    query =  '''SELECT rooms.RoomID, avg(datediff(CURDATE(), students.birthday)) as Age
+              FROM rooms JOIN students
+              ON rooms.RoomID = students.RoomID 
+              GROUP BY rooms.RoomID
+              ORDER by Age ASC
+              LIMIT 5'''
+    with con:
+        cur.execute(query)
+        data = cur.fetchall()
+    return data
+
+def diff_sex(args):
+    con, cur = connect(args)
+    query = '''SELECT rooms.RoomID, count(DISTINCT students.sex) AS Counter
+              FROM rooms JOIN students
+              ON rooms.RoomID = students.RoomID
+              GROUP BY rooms.RoomID
+              HAVING Counter > 1'''
+    with con:
+        cur.execute(query)
+        data = cur.fetchall()
+
+    return data
+
+def max_diff_age(args):
+    con,cur = connect(args)
+    query = '''SELECT rooms.RoomID, datediff(max(students.birthday), min(students.birthday)) as Difference 
+              FROM rooms join students
+              ON rooms.RoomID = students.RoomID 
+              GROUP BY rooms.RoomID
+              ORDER by Difference DESC
+              LIMIT 5'''
+    with con:
+        cur.execute(query)
+        data = cur.fetchall()
+    return data
 
 if __name__ == "queries":
     alive = True

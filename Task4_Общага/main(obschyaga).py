@@ -110,8 +110,10 @@ def main():
     parser.add_argument("db_user", type=str, help="Database user")
     parser.add_argument("db_password", type=str, help="Database password")
     args = parser.parse_args()
-
-    init(args)
+    print(min_avg_age(args))
+    print(diff_sex(args))
+    print(max_diff_age(args))
+    #init(args)
 
 
     rooms_json = JsonReader(args.path_to_rooms).read()
@@ -120,8 +122,8 @@ def main():
     data = []
     for i in rooms_json:
         data.append(i["id"])
-    add_rooms(args, data)
-    add_students(args, students_json)
+    #add_rooms(args, data)
+    #add_students(args, students_json)
     students = [Student(name=i["name"], birthday=i["birthday"], sex=i["sex"], room=i["room"], id=i["id"]) for i in students_json]
 
 
