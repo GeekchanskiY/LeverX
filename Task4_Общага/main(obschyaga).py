@@ -121,6 +121,7 @@ def main():
     for i in rooms_json:
         data.append(i["id"])
     add_rooms(args, data)
+    add_students(args, students_json)
     students = [Student(name=i["name"], birthday=i["birthday"], sex=i["sex"], room=i["room"], id=i["id"]) for i in students_json]
 
 
