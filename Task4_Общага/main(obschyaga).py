@@ -148,7 +148,5 @@ def main():
         XmlWriter(writing_data).write()
 
 
-
-
 if __name__ == '__main__':
     main()
