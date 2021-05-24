@@ -9,14 +9,21 @@ def init(args):
     con, cur = connect(args)
     with con:
         cur.execute("CREATE TABLE if not exists Rooms(RoomID INT Primary KEY NOT NULL UNIQUE);")
-        cur.execute("CREATE TABLE if not exists Students(StudentID INT Primary KEY NOT NULL UNIQUE, sex Enum('M','F'), name VARCHAR(100),"
-                    " birthday DATETIME, RoomID INT,FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID) ON DELETE CASCADE);")
+        cur.execute("""CREATE TABLE if not exists Students(
+            StudentID INT Primary KEY NOT NULL UNIQUE,
+            sex Enum('M','F'), name VARCHAR(100),
+            birthday DATETIME,
+            RoomID INT,
+            FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID) ON DELETE CASCADE);""")
 
 def add_rooms(args, data):
     con, cur = connect(args)
     with con:
         for i in data:
-            cur.execute("INSERT Rooms(RoomID) VALUES ({});".format(int(i)))
+            try:
+                cur.execute("INSERT Rooms(RoomID) VALUES ({});".format(int(i)))
+            except pymysql.err.IntegrityError:
+                continue
             con.commit()
 
 def add_students(args, data):
@@ -24,7 +31,10 @@ def add_students(args, data):
     query = "INSERT Students(StudentID, sex, name, birthday, RoomID) VALUES (%s, %s, %s, %s, %s);"
     with con:
         for i in data:
-            cur.execute(query, [i["id"],i["sex"],i["name"],i["birthday"],i["room"]])
+            try:
+                cur.execute(query, [i["id"],i["sex"],i["name"],i["birthday"],i["room"]])
+            except pymysql.err.IntegrityError:
+                continue
             con.commit()
 
 def min_avg_age(args):

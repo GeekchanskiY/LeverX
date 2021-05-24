@@ -73,12 +73,6 @@ class JsonReader:
 
 
 class Room(object):
-    """
-
-        Класс содержит свой номер и экземпляры учеников
-        Методы для добавления учеников и вывода номера комнаты со списком имен учеников
-
-     """
     def __init__(self, room_id):
         self.room_id = room_id
         self.students = []
@@ -114,28 +108,46 @@ def main():
     parser.add_argument("db_password", type=str, help="Database password")
     args = parser.parse_args()
 
-    #init(args)
-    print(min_avg_age(args))
-    JsonWriter(min_avg_age(args), "min_avg_age").write()
-    print(diff_sex(args))
-    JsonWriter(diff_sex(args), "different_sex").write()
-    print(max_diff_age(args))
-    JsonWriter(max_diff_age(args), "max_diff_age").write()
-
-
+    # Создание (в случае отсутствия) таблиц студентов и комнат
+    init(args)
 
     rooms_json = JsonReader(args.path_to_rooms).read()
     students_json = JsonReader(args.path_to_students).read()
-    rooms = [Room(i["id"]) for i in rooms_json]
+
+    # Запись комнат и студентов в базу
     data = []
     for i in rooms_json:
         data.append(i["id"])
-    #add_rooms(args, data)
-    #add_students(args, students_json)
-    students = [Student(name=i["name"], birthday=i["birthday"], sex=i["sex"], room=i["room"], id=i["id"]) for i in students_json]
+
+    add_rooms(args, data)
+    add_students(args, students_json)
+
+    # Вывод обработанных данных
+    JsonWriter(min_avg_age(args), "min_avg_age").write()
+    JsonWriter(diff_sex(args), "different_sex").write()
+    JsonWriter(max_diff_age(args), "max_diff_age").write()
 
 
-    # Создание комнат и распределение учеников по комнатам
+    rooms = [Room(i["id"]) for i in rooms_json]
+    for i in students_json:
+        student = Student(id=i["id"], sex=i["sex"], name=i["name"], birthday=i["birthday"], room=i["room"])
+        rooms[int(i["room"])].students.append(student)
+
+    # Получение данных из всех комнат с последующей записью в json и xml
+
+    writing_data = []
+    for room in rooms:
+        writing_data.append({"room": room.get_data()[0], "students": room.get_data()[1]})
+
+    if args.output_format == 1:
+        JsonWriter(writing_data, "output").write()
+    elif args.output_format == 2:
+        XmlWriter(writing_data).write()
+    else:
+        JsonWriter(writing_data, "output").write()
+        XmlWriter(writing_data).write()
+
+
 
 
 if __name__ == '__main__':
