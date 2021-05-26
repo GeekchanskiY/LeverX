@@ -20,4 +20,8 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
 
     def __str__(self):
-        return email
+        return username
+
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
