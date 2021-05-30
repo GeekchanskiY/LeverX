@@ -1,5 +1,11 @@
 from django.db import models
+from django.conf import settings
+
 from django.contrib.auth.models import AbstractUser
+
+import jwt
+
+from datetime import datetime, timedelta
 
 # Можно было бы и AbstractBaseUser тут забацать, но в данном случае и этого хватает вроде как
 
@@ -20,7 +26,25 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
 
     def __str__(self):
-        return username
+        return self.username
+
+    @property
+    def token(self):
+        return self._generate_jwt_token()
+
+    def _generate_jwt_token(self):
+        """
+        Генерирует веб-токен JSON, в котором хранится идентификатор этого
+        пользователя, срок действия токена составляет 1 день от создания
+        """
+        dt = datetime.now() + timedelta(days=1)
+
+        token = jwt.encode({
+            'id': self.pk,
+            'exp': int(dt.strftime('%S'))
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token
 
     class Meta:
         verbose_name = "User"
